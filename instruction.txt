@@ -1,0 +1,180 @@
+#Setup Xcode
+
+xcode-select --install
+
+#Setup Homebrew
+
+ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+#Check Installation
+
+brew doctor
+
+#Install brew services
+
+brew tap homebrew/services
+
+#Install bash completion (Optional)
+
+brew install bash-completion
+
+#Homebrew update 
+
+brew update && brew upgrade
+
+#Setup Environment
+
+sudo nano ~/.bash_profile
+
+#Add following lines
+
+  ##
+  # Homebrew
+  ##
+  export PATH="/usr/local/bin:$PATH"
+  export PATH="/usr/local/sbin:$PATH"
+
+  ##
+  # Homebrew bash completion
+  ##
+  if [ -f $(brew --prefix)/etc/bash_completion ]; then
+    source $(brew --prefix)/etc/bash_completion
+  fi
+
+#Install php70
+
+  brew tap homebrew/dupes && \
+  brew tap homebrew/php && \
+  brew install --without-apache --with-fpm --with-mysql php70
+
+#Configure PHP-FPM
+
+sudo nano /usr/local/etc/php/7.0/php-fpm.d/www.conf
+
+#Add this lines
+
+  user = moinulhuq
+  group = staff
+
+#Testing
+
+#start php-fpm
+
+sudo brew services start php70
+
+#show running processes
+
+lsof -Pni4 | grep LISTEN | grep php
+
+Install NGINX
+
+brew tap homebrew/nginx && \
+brew install nginx
+
+Test Installation
+
+  ## Start Nginx
+  sudo brew services start nginx
+
+  ## Check if Nginx is running on default port
+  curl -IL http://127.0.0.1:8080
+
+#Output
+
+HTTP/1.1 200 OK
+Server: nginx/1.10.0
+Date: Sat, 07 May 2016 07:36:32 GMT
+Content-Type: text/html
+Content-Length: 612
+Last-Modified: Tue, 26 Apr 2016 13:31:24 GMT
+Connection: keep-alive
+ETag: "571f6dac-264"
+Accept-Ranges: bytes
+
+#Stop Nginx
+
+sudo brew services stop nginx
+
+#Create missing directories
+
+  mkdir -p /usr/local/etc/nginx/sites-available && \
+  mkdir -p /usr/local/etc/nginx/sites-enabled && \
+  mkdir -p /usr/local/etc/nginx/conf.d && \
+  mkdir -p /usr/local/etc/nginx/ssl
+
+#Configure nginx.conf and Configure nginx.conf.default
+
+vi  /usr/local/etc/nginx/nginx.conf
+
+#Add these lines
+
+worker_processes  1;
+
+error_log  /Library/Logs/nginx/error.log debug;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    include             mime.types;
+    default_type        application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /Library/Logs/nginx/access.log  main;
+
+    sendfile            on;
+
+    keepalive_timeout   65;
+
+    index index.html index.php;
+
+    include /usr/local/etc/nginx/sites-enabled/*; 
+}
+
+## Start Nginx
+  sudo brew services start nginx
+
+## Check if Nginx is running on default port
+  curl -IL http://localhost
+
+## Output should look like this
+  HTTP/1.1 200 OK
+  Server: nginx/1.10.0
+  Date: Sat, 07 May 2016 08:35:57 GMT
+  Content-Type: text/html
+  Content-Length: 612
+  Last-Modified: Tue, 26 Apr 2016 13:31:24 GMT
+  Connection: keep-alive
+  ETag: "571f6dac-264"
+  Accept-Ranges: bytes
+
+#Setup SSL
+
+#Create a folder for our SSL certificates and private keys:
+
+mkdir -p /usr/local/etc/nginx/ssl
+
+#Generate 4096 bit RSA keys and the self-sign the certificates in one command:
+
+openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=US/ST=State/L=Town/O=Office/CN=localhost" -keyout /usr/local/etc/nginx/ssl/localhost.key -out /usr/local/etc/nginx/ssl/localhost.crt
+
+
+
+
+
+#Install git 
+
+brew install git
+
+#Install nginx
+
+brew install nginx
+
+#Launch Nginx at startup
+
+brew services start nginx
+
